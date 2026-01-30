@@ -3,10 +3,12 @@ package git
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"sort"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 )
 
 type EditedFile struct {
@@ -21,19 +23,28 @@ func MostEditedFiles(repoRoot string) error {
 	if err != nil {
 		return err
 	}
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(w, "MOST EDITED FILES")
+	fmt.Fprintln(w, "FILE\tADD\tDEL\tCOMMITS")
 	for _, file := range mostEditedFiles {
-		fmt.Printf("%s +%d -%d %d\n",
+		fmt.Fprintf(w, "%s\t+%d\t-%d\t%d\n",
 			file.FileName,
 			file.AddedLineCount,
 			file.DeletedLineCount,
 			file.NumberOfBranchOccured,
 		)
 	}
+	w.Flush()
 	return nil
 }
 
 func getMostEditedFiles(repoRoot string) ([]EditedFile, error) {
-	cmd := exec.Command("git", "log", "--since=midnight", "--numstat", "--pretty=")
+	author, err := getAuthor()
+	if err != nil {
+		return nil, err
+	}
+	cmd := exec.Command("git", "log", "--since=midnight",
+		"--numstat", "--pretty=", "--author="+author)
 	var out bytes.Buffer
 	cmd.Dir = repoRoot
 	cmd.Stdout = &out
@@ -61,7 +72,7 @@ func getMostEditedFiles(repoRoot string) ([]EditedFile, error) {
 		if err != nil {
 			return nil, err
 		}
-		var file *EditedFile = fileMap[temp[2]]
+		file := fileMap[temp[2]]
 		if file != nil {
 			file.AddedLineCount += addedLineCount
 			file.DeletedLineCount += deletedLineCount
@@ -89,5 +100,6 @@ func getMostEditedFiles(repoRoot string) ([]EditedFile, error) {
 		return file1LineCount > file2LineCount
 	})
 
-	return files, nil
+	limit := min(5, len(files))
+	return files[:limit], nil
 }

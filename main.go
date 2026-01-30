@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 
 	"github.com/mughilan16/daylog/internal/git"
 	"github.com/mughilan16/daylog/internal/logger"
@@ -28,16 +27,15 @@ func main() {
 		logger.Debug(err.Error())
 		logger.Fatal("Failed to resolve repo root")
 	}
-	todayCommits, err := git.TodaysCommit(repoRoot)
-	if err != nil {
-		logger.Debug(err.Error())
-		logger.Fatal("Failed to calculate today's commits")
-	}
-	fmt.Println("------ Report -----")
-	fmt.Println("Today commit count: ", len(todayCommits))
 	err = git.MostEditedFiles(repoRoot)
 	if err != nil {
 		logger.Debug(err.Error())
 		logger.Fatal("Failed to analyze most edited files")
+	}
+
+	err = git.TodaysCommit(repoRoot)
+	if err != nil {
+		logger.Debug(err.Error())
+		logger.Fatal("Failed to analyze today's commits")
 	}
 }
