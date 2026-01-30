@@ -22,7 +22,12 @@ func MostEditedFiles(repoRoot string) error {
 		return err
 	}
 	for _, file := range mostEditedFiles {
-		fmt.Printf("%s +%d -%d\n", file.FileName, file.AddedLineCount, file.DeletedLineCount)
+		fmt.Printf("%s +%d -%d %d\n",
+			file.FileName,
+			file.AddedLineCount,
+			file.DeletedLineCount,
+			file.NumberOfBranchOccured,
+		)
 	}
 	return nil
 }
@@ -42,7 +47,7 @@ func getMostEditedFiles(repoRoot string) ([]EditedFile, error) {
 			filteredFiles = append(filteredFiles, f)
 		}
 	}
-	files := make([]EditedFile, 0, len(filteredFiles))
+	fileMap := make(map[string]*EditedFile)
 	for _, f := range filteredFiles {
 		temp := strings.Split(f, "\t")
 		if len(temp) != 3 {
@@ -56,13 +61,25 @@ func getMostEditedFiles(repoRoot string) ([]EditedFile, error) {
 		if err != nil {
 			return nil, err
 		}
-		files = append(files, EditedFile{
-			FileName:              temp[2],
-			AddedLineCount:        addedLineCount,
-			DeletedLineCount:      deletedLineCount,
-			NumberOfBranchOccured: 1,
-		})
+		var file *EditedFile = fileMap[temp[2]]
+		if file != nil {
+			file.AddedLineCount += addedLineCount
+			file.DeletedLineCount += deletedLineCount
+			file.NumberOfBranchOccured += 1
+		} else {
+			fileMap[temp[2]] = &EditedFile{
+				FileName:              temp[2],
+				AddedLineCount:        addedLineCount,
+				DeletedLineCount:      deletedLineCount,
+				NumberOfBranchOccured: 1,
+			}
+		}
 	}
+	files := make([]EditedFile, 0, len(fileMap))
+	for _, f := range fileMap {
+		files = append(files, *f)
+	}
+
 	sort.Slice(files, func(i, j int) bool {
 		file1LineCount := files[i].AddedLineCount + files[i].DeletedLineCount
 		file2LineCount := files[j].AddedLineCount + files[j].DeletedLineCount
