@@ -26,3 +26,11 @@ func IsCurrentDirValidRepo() bool {
 	_, err := RepoRoot()
 	return err == nil
 }
+
+func getRepoNameFromRoot(repoRoot string) string {
+	parts := strings.Split(repoRoot, "/")
+	if len(parts) == 0 {
+		return ""
+	}
+	return parts[len(parts)-1]
+}

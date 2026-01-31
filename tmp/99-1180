@@ -1,0 +1,15 @@
+func getRepoNameFromRoot(repoRoot string) (string, error) {
+	// Extract repository name from the path by taking the last component
+	// For example, "/home/user/repo" -> "repo"
+	parts := strings.Split(repoRoot, "/")
+	if len(parts) == 0 {
+		return "", fmt.Errorf("invalid repo root path")
+	}
+	
+	repoName := parts[len(parts)-1]
+	if repoName == "" {
+		return "", fmt.Errorf("repository name is empty")
+	}
+	
+	return repoName, nil
+}

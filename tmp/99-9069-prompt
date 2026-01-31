@@ -1,0 +1,64 @@
+You receive a selection in neovim that you need to replace with new code.
+The selection's contents may contain notes, incorporate the notes every time if there are some.
+consider the context of the selection and what you are suppose to be implementing
+<SELECTION_LOCATION>
+range(point(30,1),point(31,2))
+</SELECTION_LOCATION>
+<SELECTION_CONTENT>
+func getRepoNameFromRoot(repoRoot string) {
+}
+</SELECTION_CONTENT>
+<FILE_CONTAINING_SELECTION>
+package git
+
+import (
+	"os/exec"
+	"strings"
+)
+
+func getAuthor() (string, error) {
+	cmd, err := exec.Command("git", "config", "user.name").Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(cmd)), nil
+}
+
+func RepoRoot() (string, error) {
+	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+func IsCurrentDirValidRepo() bool {
+	_, err := RepoRoot()
+	return err == nil
+}
+
+func getRepoNameFromRoot(repoRoot string) {
+}
+</FILE_CONTAINING_SELECTION>
+
+# AI Agent Configuration
+
+You are an AI assistant helping with code development.
+
+## Guidelines
+- Write clean, maintainable code
+- Follow existing patterns in the codebase
+- Add appropriate error handling
+- Include helpful comments when needed
+
+## Current Project Context
+Working in the daylog project directory.
+<MustObey>
+NEVER alter any file other than TEMP_FILE.
+never provide the requested changes as conversational output. Return only the code.
+ONLY provide requested changes by writing the change to TEMP_FILE
+
+never attempt to read TEMP_FILE.  It is purely for output.  Previous contents, which may not exist, can be written over without worry
+</MustObey>
+<TEMP_FILE>/home/mughilan/sandbox/daylog/tmp/99-9069</TEMP_FILE>
